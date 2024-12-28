@@ -41,11 +41,19 @@ const userSchema = new mongoose.Schema({
     },
     
   },
+  totalCredits: {
+    type: Number,
+    default: 0, // Start with 0 credits
+    validate: {
+      validator: function (value) {
+        return this.role !== "student" || value <= 20; // Ensure credits do not exceed 20
+      },
+      message: "Students cannot exceed 20 credits.",
+    },
+  },
 });
 
 // PRE SAVE HOOKS SECTION
-
-
 
 // **Pre-save Hook** — Automatically hash the course password before saving
 courseSchema.pre("save", async function (next) {
