@@ -4,18 +4,17 @@ const bcrypt = require("bcrypt");
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true,"A user must have a name"],
+    required: [true, "A user must have a name"],
     unique: true 
   },
   email: {
     type: String,
-    required: [true,"A user must have an email"],
+    required: [true, "A user must have an email"],
     unique: true 
   },
   password: {
     type: String,
     required: [true, "A user must have a password"],
-    minlength: [8, "Password must be at least 8 characters long"], // Minimum length
   },
   role: { 
     type: String,
@@ -27,41 +26,43 @@ const userSchema = new mongoose.Schema({
     city: { type: String, required: true },
     state: { type: String, required: true },
   },
-  year:
-  { 
+  yearOfStudy: {
     type: Number,
     required: function () {
       return this.role === "student";
-    }, 
-    validate: {
-    validator: function (value) {
-        return this.role !== "student" || value > 0;
-      },
-      message: "Year must be a positive number for students.",
     },
-    
+    validate: {
+      validator: function (value) {
+        return this.role === "student" && value > 0;
+      },
+      message: "Year must be a positive number for students."
+    }
   },
   totalCredits: {
     type: Number,
-    default: 0, // Start with 0 credits
+    default: 0,
     validate: {
       validator: function (value) {
-        return this.role !== "student" || value <= 20; // Ensure credits do not exceed 20
+        return this.role === "student" && value <= 20;
       },
-      message: "Students cannot exceed 20 credits.",
-    },
-  },
+      message: "Students cannot exceed 20 credits."
+    }
+  }
 });
 
-// PRE SAVE HOOKS SECTION
+// Pre-save hook to automatically hash the password before saving
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
 
-// **Pre-save Hook** — Automatically hash the course password before saving
-courseSchema.pre("save", async function (next) {
-  if (!this.isModified("coursePassword")) {
-    return next(); // Only hash if the password is new or changed
+// Pre-save hook to remove irrelevant fields based on role
+userSchema.pre('save', function (next) {
+  if (this.role !== "student") {
+    delete this.yearOfStudy;
+    delete this.totalCredits;
   }
-  const salt = await bcrypt.genSalt(12); // Salt strength of 12
-  this.coursePassword = await bcrypt.hash(this.coursePassword, salt); // Hash the password
   next();
 });
 
