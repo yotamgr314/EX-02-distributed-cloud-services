@@ -1,29 +1,35 @@
-// IMPORT MODELS SECTION
+const express = require('express');
+const dotenv = require('dotenv');
+const { connectDB } = require('./config/db');
+const authenticateRoutes = require('./routes/authenticateRoutes');
+const errorHandler = require('./middleware/errorMiddleware');
+const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
 
-const express = require("express");
-const cors = require("cors");
-const morgan = require("morgan");
-
-const { connectDB } = require("./config/db");
-
-// IMPORT ROUTES SECTION 
-
+dotenv.config();
 const app = express();
 
+// Connect to Database
 connectDB();
 
-// MIDDLEWARES SECTION
-app.use(cors()); // Enable Cross-Origin Resource Sharing
-app.use(express.json()); // Parse JSON in request body
-app.use(morgan("dev")); // Log HTTP requests
+// Create a write stream for logging requests to a file
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, 'logs', 'access.log'),
+  { flags: 'a' }
+);
 
-//ROUTES SECTION
+// Use morgan to log requests to the terminal and save them to a file
+app.use(morgan('combined', { stream: accessLogStream }));
+app.use(morgan('dev')); // Log to terminal
 
-// Default route
-app.get("/", (req, res) => {
-  res.send("Welcome to the Course Registration API");
-});
+// Middleware
+app.use(express.json());
 
+// Routes
+app.use('/api/authenticate', authenticateRoutes);
 
+// Global Error Handler
+app.use(errorHandler);
 
 module.exports = app;

@@ -16,7 +16,7 @@ const errorHandler = (err, req, res, next) => {
   let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   let errorMessage = err.message || 'Internal Server Error';
 
-  // Log the error
+  // Log the error using winston
   logError(`${req.method} ${req.originalUrl} - ${errorMessage}`);
 
   // Handle specific error types
