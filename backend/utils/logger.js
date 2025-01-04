@@ -1,7 +1,7 @@
-const { createLogger, format, transports } = require('winston');
+const { createLogger, format, transports } = require("winston");
 
 const logger = createLogger({
-  level: 'error',
+  level: "error",
   format: format.combine(
     format.timestamp(),
     format.printf(({ timestamp, level, message }) => {
@@ -10,7 +10,7 @@ const logger = createLogger({
   ),
   transports: [
     new transports.Console(),
-    new transports.File({ filename: 'logs/error.log' }),
+    new transports.File({ filename: "logs/error.log", level: "error" }),
   ],
 });
 

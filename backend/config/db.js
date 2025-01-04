@@ -1,4 +1,6 @@
+// backend/config/db.js
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 const connectDB = async () => {
   try {
@@ -6,11 +8,11 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
+    console.log("MongoDB Connected");
   } catch (error) {
+    console.error("MongoDB Connection Failed:", error.message);
     process.exit(1);
   }
 };
 
-mongoose.connection.on('disconnected', () => {});
-
-module.exports = { connectDB };
+module.exports = connectDB;
