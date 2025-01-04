@@ -1,33 +1,46 @@
-// models/Course.js
-const mongoose = require("mongoose");
-
 const courseSchema = new mongoose.Schema({
+  courseId: {
+    type: String,
+    required: [true, "A course must have an ID"],
+    unique: true
+  },
   name: {
     type: String,
-    required: true
+    required: [true, "A course must have a name"]
   },
-
-  lecturer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-
-  credits: { 
-    type: Number, 
-    enum: [3, 3.5, 4, 4.5, 5], 
-    required: true 
+  lecturer: {
+    type: String,
+    required: [true, "A course must have a lecturer"]
   },
-
+  creditPoints: {
+    type: Number,
+    required: [true, "A course must have credit points"],
+    min: [3, "Credit points must be at least 3"],
+    max: [5, "Credit points must not exceed 5"]
+  },
   maxStudents: {
-     type: Number,
-    required: true 
+    type: Number,
+    required: [true, "A course must have a maximum number of students"]
   },
   enrolledStudents: [
     {
-      studentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      studentName: String,
-    },
-  ],
-});
-
-module.exports = mongoose.model("Course", courseSchema);
+      studentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+      },
+      name: {
+        type: String,
+        required: true
+      },
+      role: {
+        type: String,
+        enum: ['student'],
+        required: true
+      }
+    }
+  ]
+}, { timestamps: true });
 
 // **Virtual Field** to calculate free places
 courseSchema.virtual("freePlaces").get(function () {
@@ -41,3 +54,5 @@ courseSchema.pre("save", function (next) {
   }
   next();
 });
+
+module.exports = mongoose.model("Course", courseSchema);
