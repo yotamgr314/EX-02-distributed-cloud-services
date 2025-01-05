@@ -12,7 +12,23 @@ const authenticateMiddleware = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      req.user = await User.findById(decoded.id).select("-password");
+      // Fetch user details from the database
+      const user = await User.findById(decoded.id).select("-password");
+
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      // Attach full user details to the request object
+      req.user = {
+        id: user._id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        yearOfStudy: user.yearOfStudy,
+        creditPoints: user.creditPoints,
+      };
+
       next();
     } catch (error) {
       error.statusCode = 401;

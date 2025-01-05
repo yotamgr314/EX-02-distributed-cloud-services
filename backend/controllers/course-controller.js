@@ -68,6 +68,56 @@ const getCoursesWithEnrollment = async (req, res, next) => {
       next(error);
     }
   };
+  const enrollStudent = async (req, res, next) => {
+    try {
+      if (req.user.role !== "Student") {
+        logError(`Unauthorized enrollment attempt by ${req.user.email}`);
+        return res.status(403).json({ error: "Only students can enroll in courses" });
+      }
   
-  module.exports = { createCourse, getCoursesWithEnrollment };
+      const { courseId } = req.params;
+  
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+  
+      const alreadyEnrolled = course.enrolledStudents.some(
+        student => student.studentId.toString() === req.user.id.toString()
+      );
+      if (alreadyEnrolled) {
+        return res.status(400).json({ error: "Student is already enrolled in this course" });
+      }
+  
+      if (course.enrolledStudents.length >= course.maxStudents) {
+        return res.status(400).json({ error: "The course is full" });
+      }
+  
+      const totalCredits = req.user.creditPoints + course.creditPoints;
+      if (totalCredits > 20) {
+        return res.status(400).json({ error: "You cannot exceed 20 credit points" });
+      }
+  
+      course.enrolledStudents.push({
+        studentId: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+        yearOfStudy: req.user.yearOfStudy,
+      });
+  
+      await course.save();
+      res.status(200).json({ message: "Enrollment successful", course });
+      logInfo(`${req.user.email} enrolled in ${course.name}`);
+    } catch (error) {
+      logError(`Error enrolling student: ${error.message}`);
+      next(error);
+    }
+  };
+  
+  
+  
+  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent };
+  
+  
   

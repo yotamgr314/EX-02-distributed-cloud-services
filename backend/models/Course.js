@@ -35,7 +35,7 @@ const courseSchema = new mongoose.Schema(
         },
         role: {
           type: String,
-          enum: ["student"],
+          enum: ["Student"], // ✅ Update here
           required: true,
         },
         yearOfStudy: {
