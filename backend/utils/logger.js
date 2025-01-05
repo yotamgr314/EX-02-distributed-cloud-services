@@ -2,7 +2,7 @@ const { createLogger, format, transports } = require("winston");
 const path = require("path");
 
 const logger = createLogger({
-  level: "error",
+  level: "info",
   format: format.combine(
     format.timestamp(),
     format.printf(({ timestamp, level, message }) => {
@@ -15,6 +15,10 @@ const logger = createLogger({
       filename: path.join(__dirname, "../logs/error.log"),
       level: "error",
     }),
+    new transports.File({
+      filename: path.join(__dirname, "../logs/info.log"),
+      level: "info",
+    }),
   ],
 });
 
@@ -22,4 +26,8 @@ const logError = (message) => {
   logger.error(message);
 };
 
-module.exports = { logError };
+const logInfo = (message) => {
+  logger.info(message);
+};
+
+module.exports = { logError, logInfo };

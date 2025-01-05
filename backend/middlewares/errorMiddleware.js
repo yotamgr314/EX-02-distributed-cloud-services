@@ -11,7 +11,6 @@ const sendErrorResponse = (res, statusCode, message) => {
 
 // Specific Error Handlers
 const handleValidationError = (res, err) => {
-  // ✅ החזרת הודעת השגיאה הספציפית
   const errors = Object.values(err.errors).map((e) => e.message);
   sendErrorResponse(res, 400, errors.join(", "));
 };
@@ -34,7 +33,7 @@ const errorHandler = (err, req, res, next) => {
   // Handle specific error types
   switch (err.name) {
     case "ValidationError":
-      return handleValidationError(res, err); // ✅ העברת השגיאות הספציפיות
+      return handleValidationError(res, err);
     case "JsonWebTokenError":
       return handleJwtError(res);
     case "TokenExpiredError":

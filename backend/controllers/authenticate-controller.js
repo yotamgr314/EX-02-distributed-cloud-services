@@ -1,12 +1,10 @@
 const User = require("../models/User");
 const generateToken = require("../utils/jwt-token-generate");
 
-// ✅ התחברות משתמש
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // מציאת המשתמש לפי אימייל
     const user = await User.findOne({ email });
 
     if (user && (await user.isPasswordValid(password))) {
@@ -20,10 +18,10 @@ const loginUser = async (req, res, next) => {
     } else {
       const error = new Error("Invalid email or password");
       error.statusCode = 401;
-      return next(error); // ✅ העברת השגיאה ל-Middleware
+      return next(error);
     }
   } catch (error) {
-    next(error); // ✅ העברת שגיאות נוספות ל-Middleware
+    next(error);
   }
 };
 
