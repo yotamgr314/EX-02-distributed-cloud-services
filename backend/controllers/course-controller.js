@@ -146,10 +146,39 @@ const updateCourse = async (req, res, next) => {
       next(error);
     }
   };
+
+  const deleteCourse = async (req, res, next) => {
+    try {
+      // בדיקה אם המשתמש הוא Staff
+      if (req.user.role !== "Staff") {
+        logError(`Unauthorized deletion attempt by ${req.user.email}`);
+        return res.status(403).json({ error: "Only staff members can delete courses" });
+      }
+  
+      const { courseId } = req.params;
+  
+      // חיפוש הקורס לפי ID
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+  
+      // מחיקת הקורס
+      await Course.findByIdAndDelete(courseId);
+  
+      logInfo(`Course deleted successfully by ${req.user.email}: ${course.name}`);
+  
+      res.status(200).json({ message: "Course deleted successfully" });
+    } catch (error) {
+      logError(`Error deleting course: ${error.message}`);
+      next(error);
+    }
+  };
   
   
   
-  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse };
+  
+  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse};
   
   
   
