@@ -115,9 +115,41 @@ const getCoursesWithEnrollment = async (req, res, next) => {
     }
   };
   
+
+const updateCourse = async (req, res, next) => {
+    try {
+      if (req.user.role !== "Staff") {
+        logError(`Unauthorized course edit attempt by ${req.user.email}`);
+        return res.status(403).json({ error: "Only staff members can edit courses" });
+      }
+  
+      const { courseId } = req.params;
+      const updates = req.body;
+  
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+  
+      // ✅ עדכון הקורס במסד הנתונים
+      Object.assign(course, updates);
+      const updatedCourse = await course.save();
+  
+      res.status(200).json({
+        message: "Course updated successfully",
+        course: updatedCourse,
+      });
+  
+      logInfo(`Course "${course.name}" updated by ${req.user.email}`);
+    } catch (error) {
+      logError(`Error updating course: ${error.message}`);
+      next(error);
+    }
+  };
   
   
-  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent };
+  
+  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse };
   
   
   
