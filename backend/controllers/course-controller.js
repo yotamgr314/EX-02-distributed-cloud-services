@@ -201,10 +201,50 @@ const updateCourse = async (req, res, next) => {
       next(error);
     }
   };
+
+  const unregisterStudent = async (req, res, next) => {
+    try {
+      // בדיקה אם המשתמש הוא Student
+      if (req.user.role !== "Student") {
+        logError(`Unauthorized access by ${req.user.email}`);
+        return res.status(403).json({ error: "Only students can unregister from courses" });
+      }
+  
+      const { courseId } = req.params;
+      const studentId = req.user.id;
+  
+      // חיפוש הקורס לפי ID
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+  
+      // בדיקה אם הסטודנט רשום לקורס
+      const studentIndex = course.enrolledStudents.findIndex(
+        student => student.studentId.equals(studentId)
+      );
+            
+      if (studentIndex === -1) {
+        return res.status(400).json({ error: "Student is not enrolled in this course" });
+      }
+  
+      // מחיקת הסטודנט מהרשימה של הסטודנטים הרשומים
+      course.enrolledStudents.splice(studentIndex, 1);
+      await course.save();
+  
+      logInfo(`Student ${req.user.email} unregistered from course ${course.name}`);
+  
+      res.status(200).json({ message: "Successfully unregistered from course" });
+    } catch (error) {
+      logError(`Error unregistering student: ${error.message}`);
+      next(error);
+    }
+  };
   
   
   
-  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse, getStudentCourses};
+  
+  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse, getStudentCourses,unregisterStudent};
   
   
   
