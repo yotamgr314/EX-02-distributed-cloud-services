@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// ✅ Middleware לאימות טוקן JWT
 const authenticateMiddleware = async (req, res, next) => {
   let token;
 
@@ -18,12 +17,12 @@ const authenticateMiddleware = async (req, res, next) => {
       next();
     } catch (error) {
       error.statusCode = 401;
-      return next(error); // ✅ העברת השגיאה ל-Middleware
+      return next(error);
     }
   } else {
     const error = new Error("Not authorized, no token");
     error.statusCode = 401;
-    return next(error); // ✅ העברת השגיאה ל-Middleware
+    return next(error);
   }
 };
 
