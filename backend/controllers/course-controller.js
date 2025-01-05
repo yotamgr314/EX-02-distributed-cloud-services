@@ -175,10 +175,36 @@ const updateCourse = async (req, res, next) => {
     }
   };
   
+  const getStudentCourses = async (req, res, next) => {
+    try {
+      // בדיקה אם המשתמש הוא Student
+      if (req.user.role !== "Student") {
+        logError(`Unauthorized access by ${req.user.email}`);
+        return res.status(403).json({ error: "Only students can view their enrolled courses" });
+      }
+  
+      // שליפת הקורסים של הסטודנט
+      const studentId = req.user.id;
+      
+      const courses = await Course.find({ "enrolledStudents.studentId": studentId })
+        .select("-__v")  // הסרת השדה __v מהתוצאה
+        .populate("enrolledStudents.studentId", "name email");  // למילוי פרטי הסטודנט
+  
+      if (courses.length === 0) {
+        return res.status(404).json({ error: "No courses found for this student" });
+      }
+  
+      logInfo(`Courses retrieved for student ${req.user.email}`);
+      res.status(200).json(courses);
+    } catch (error) {
+      logError(`Error retrieving courses: ${error.message}`);
+      next(error);
+    }
+  };
   
   
   
-  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse};
+  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse, getStudentCourses};
   
   
   
