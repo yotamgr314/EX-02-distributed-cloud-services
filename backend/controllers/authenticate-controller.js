@@ -2,7 +2,7 @@ const User = require("../models/User");
 const generateToken = require("../utils/jwt-token-generate");
 
 // ✅ התחברות משתמש
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -18,13 +18,12 @@ const loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ message: "Invalid email or password" });
+      const error = new Error("Invalid email or password");
+      error.statusCode = 401;
+      return next(error); // ✅ העברת השגיאה ל-Middleware
     }
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    next(error); // ✅ העברת שגיאות נוספות ל-Middleware
   }
 };
 

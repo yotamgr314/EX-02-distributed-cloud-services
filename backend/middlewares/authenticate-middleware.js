@@ -17,12 +17,13 @@ const authenticateMiddleware = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select("-password");
       next();
     } catch (error) {
-      res.status(401).json({ message: "Not authorized, token failed" });
+      error.statusCode = 401;
+      return next(error); // ✅ העברת השגיאה ל-Middleware
     }
-  }
-
-  if (!token) {
-    res.status(401).json({ message: "Not authorized, no token" });
+  } else {
+    const error = new Error("Not authorized, no token");
+    error.statusCode = 401;
+    return next(error); // ✅ העברת השגיאה ל-Middleware
   }
 };
 

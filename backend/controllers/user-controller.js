@@ -1,23 +1,17 @@
 const User = require("../models/User");
 
 // ✅ יצירת משתמש חדש
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      role,
-      address,
-      yearOfStudy,
-      registeredCourses,
-      creditPoints,
-    } = req.body;
+    const { name, email, password, role, address, yearOfStudy, creditPoints } =
+      req.body;
 
     // בדיקה אם המשתמש כבר קיים
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      const error = new Error("User already exists");
+      error.statusCode = 400;
+      return next(error); // ✅ העברת השגיאה ל-Middleware
     }
 
     // יצירת משתמש חדש
@@ -28,7 +22,6 @@ const createUser = async (req, res) => {
       role,
       address,
       yearOfStudy,
-      registeredCourses,
       creditPoints,
     });
 
@@ -40,23 +33,17 @@ const createUser = async (req, res) => {
       user: savedUser,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    next(error); // ✅ העברת שגיאות נוספות ל-Middleware
   }
 };
 
 // ✅ קבלת רשימת משתמשים
-const getUsers = async (req, res) => {
+const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     res.json(users);
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    next(error); // ✅ העברת השגיאות ל-Middleware
   }
 };
 
