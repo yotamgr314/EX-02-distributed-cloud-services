@@ -54,6 +54,22 @@ const userSchema = new mongoose.Schema(
         message: "Students cannot exceed 20 credit points.",
       },
     },
+    currentYear: {
+      type: Number,
+      required: [true, "Current year is required"],
+      min: [2020, "Year must be at least 2020"],
+      required: function () {
+        return this.role === "Student";
+      },
+    },
+    currentSemester: {
+      type: String,
+      required: [true, "Current semester is required"],
+      enum: ["Spring", "Summer", "Fall", "Winter"],
+      required: function () {
+        return this.role === "Student";
+      },
+    },
   },
   { timestamps: true }
 );
@@ -70,10 +86,11 @@ userSchema.pre("save", async function (next) {
     }
   }
 
-  // ✅ Remove irrelevant fields for "Staff" role
   if (this.role === "Staff") {
     this.yearOfStudy = undefined;
     this.creditPoints = undefined;
+    this.currentYear = undefined;
+    this.currentSemester = undefined;
   }
 
   next();

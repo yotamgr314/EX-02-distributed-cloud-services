@@ -33,13 +33,18 @@ const courseSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
-        role: {
-          type: String,
-          enum: ["Student"], // ✅ Update here
-          required: true,
-        },
         yearOfStudy: {
           type: Number,
+          required: true,
+        },
+      },
+    ],
+    availableSemesters: [
+      {
+        year: { type: Number, required: true },
+        semester: {
+          type: String,
+          enum: ["Spring", "Summer", "Fall", "Winter"],
           required: true,
         },
       },
@@ -48,7 +53,6 @@ const courseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// **Virtual Field** to calculate free places
 courseSchema.virtual("freePlaces").get(function () {
   return this.maxStudents - this.enrolledStudents.length;
 });
