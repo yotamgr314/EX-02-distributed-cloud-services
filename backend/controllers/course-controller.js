@@ -241,10 +241,79 @@ const updateCourse = async (req, res, next) => {
     }
   };
   
+  const switchCourse = async (req, res, next) => {
+    try {
+      // בדיקה אם המשתמש הוא Student
+      if (req.user.role !== "Student") {
+        logError(`Unauthorized course switch attempt by ${req.user.email}`);
+        return res.status(403).json({ error: "Only students can switch courses" });
+      }
+  
+      const { currentCourseId, newCourseId } = req.body;
+      const studentId = req.user.id;
+  
+      // שליפת הקורס המקורי
+      const currentCourse = await Course.findById(currentCourseId);
+      if (!currentCourse) {
+        return res.status(404).json({ error: "Current course not found" });
+      }
+  
+      // בדיקה אם הסטודנט רשום לקורס המקורי
+      const studentIndex = currentCourse.enrolledStudents.findIndex(
+        student => student.studentId.equals(studentId)
+      );
+      if (studentIndex === -1) {
+        return res.status(400).json({ error: "Student is not enrolled in the current course" });
+      }
+  
+      // שליפת הקורס החדש
+      const newCourse = await Course.findById(newCourseId);
+      if (!newCourse) {
+        return res.status(404).json({ error: "New course not found" });
+      }
+  
+      // בדיקה אם הקורס החדש מלא
+      if (newCourse.enrolledStudents.length >= newCourse.maxStudents) {
+        return res.status(400).json({ error: "The new course is full" });
+      }
+  
+      // חישוב נקודות זכות חדשות
+      const totalCredits =
+        req.user.creditPoints - currentCourse.creditPoints + newCourse.creditPoints;
+  
+      if (totalCredits > 20) {
+        return res.status(400).json({ error: "You cannot exceed 20 credit points" });
+      }
+  
+      // ✅ מחיקת הסטודנט מהקורס המקורי
+      currentCourse.enrolledStudents.splice(studentIndex, 1);
+      await currentCourse.save();
+  
+      // ✅ הוספת הסטודנט לקורס החדש
+      newCourse.enrolledStudents.push({
+        studentId: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+        yearOfStudy: req.user.yearOfStudy,
+      });
+      await newCourse.save();
+  
+      // ✅ עדכון נקודות הזכות של הסטודנט
+      req.user.creditPoints = totalCredits;
+      await req.user.save();
+  
+      logInfo(`Student ${req.user.email} switched from course ${currentCourse.name} to ${newCourse.name}`);
+  
+      res.status(200).json({ message: "Course switch successful" });
+    } catch (error) {
+      logError(`Error switching courses: ${error.message}`);
+      next(error);
+    }
+  };
   
   
-  
-  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse, getStudentCourses,unregisterStudent};
+  module.exports = { createCourse, getCoursesWithEnrollment, enrollStudent,updateCourse, deleteCourse, getStudentCourses,unregisterStudent,switchCourse};
   
   
   
